@@ -56,9 +56,12 @@ pub fn main() {
 
   io.debug(response)
 
+  let handler = router.handle_request(_, context)
+
   // Start the Mist web server.
   let assert Ok(_) =
-    wisp.mist_handler(router.handle_request, secret_key_base)
+    handler
+    |> wisp.mist_handler(secret_key_base)
     |> mist.new
     |> mist.port(8000)
     |> mist.start_http

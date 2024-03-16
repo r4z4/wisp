@@ -1,9 +1,6 @@
 import gleam/http.{Get, Post}
 import gleam/string_builder
 import wisp.{type Request, type Response}
-import wisp_app/web
-
-import wisp.{type Request, type Response}
 import wisp_app/web.{type Context}
 import wisp_app/web/client
 

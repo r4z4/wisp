@@ -51,7 +51,7 @@ pub fn list_clients(ctx: Context) -> Response {
   // let return_type = dynamic.list(dynamic.int)
   let result = {
     // Get all the ids from the database.
-    use ids <- try(pgo.execute(sql, ctx.db, [], dynamic.list(dynamic.int)))
+    use returned <- try(pgo.execute(sql, ctx.db, [], dynamic.list(dynamic.int)))
 
     // Convert the ids into a JSON array of objects.
     Ok(
@@ -59,7 +59,11 @@ pub fn list_clients(ctx: Context) -> Response {
         json.object([
           #(
             "client",
-            json.array(ids, fn(id) { json.object([#("id", json.string(id))]) }),
+            json.array(returned.rows, fn(id) {
+              let int = list.first(id)
+              let val = int.to_string(result.unwrap(int, 1))
+              json.object([#("id", json.string(val))])
+            }),
           ),
         ]),
       ),
@@ -72,7 +76,7 @@ pub fn list_clients(ctx: Context) -> Response {
 
     // In a later example we will see how to return specific errors to the user
     // depending on what went wrong. For now we will just return a 500 error.
-    Error(Nil) -> wisp.internal_server_error()
+    Error(_) -> wisp.internal_server_error()
   }
 }
 
@@ -163,10 +167,14 @@ pub fn save_to_database(
       db,
       [pgo.text(client.client_f_name), pgo.int(client.territory_id)],
       // If not interested in return values
-      dynamic.dynamic,
+      dynamic.int,
     )
 
-  let string = all(res)
+  let returned = result.unwrap(res, Returned(count: 1, rows: [{ 1 }]))
+  let rows = returned.rows
+  let first = list.first(rows)
+  let str = int.to_string(result.unwrap(first, 1))
+  Ok(str)
 }
 
 pub fn read_from_database(db: pgo.Connection, id: String) -> Result(Client, Nil) {
@@ -183,10 +191,21 @@ pub fn read_from_database(db: pgo.Connection, id: String) -> Result(Client, Nil)
 
   // This is the decoder for the value returned by the query
   // let return_type = dynamic.list(dynamic.int)
-  use data <- pgo.execute(sql, db, [all(int.parse(id))], return_type)
+  let res =
+    pgo.execute(
+      sql,
+      db,
+      [pgo.int(result.unwrap(int.parse(id), 1))],
+      return_type,
+    )
+
+  let returned = result.unwrap(res, Returned(count: 1, rows: [#("Steve", 1)]))
+  let rows = returned.rows
+  let first = list.first(rows)
+  let client_non_struct = result.unwrap(first, #("Steve", 1))
 
   // use data <- try(tiny_database.read(db, id))
-  use client_f_name <- try(dict.get(data, "client_f_name"))
-  use territory_id <- try(dict.get(data, "territory_id"))
-  Ok(Client(client_f_name, territory_id))
+  //   use client_f_name <- try(dict.get(data, "client_f_name"))
+  //   use territory_id <- try(dict.get(data, "territory_id"))
+  Ok(Client(client_non_struct.0, client_non_struct.1))
 }
