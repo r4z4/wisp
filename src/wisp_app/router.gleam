@@ -3,7 +3,11 @@ import gleam/string_builder
 import wisp.{type Request, type Response}
 import wisp_app/web
 
-pub fn handle_request(req: Request) -> Response {
+import wisp.{type Request, type Response}
+import wisp_app/web.{type Context}
+import wisp_app/web/client
+
+pub fn handle_request(req: Request, ctx: Context) -> Response {
   use req <- web.middleware(req)
 
   // Wisp doesn't have a special router abstraction, instead we recommend using
@@ -20,6 +24,9 @@ pub fn handle_request(req: Request) -> Response {
     // This matches `/comments/:id`.
     // The `id` segment is bound to a variable and passed to the handler.
     ["comments", id] -> show_comment(req, id)
+
+    ["client"] -> client.all(req, ctx)
+    ["client", id] -> client.one(req, ctx, id)
 
     // This matches all other paths.
     _ -> wisp.not_found()

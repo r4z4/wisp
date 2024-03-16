@@ -7,6 +7,7 @@ import gleeunit/should
 import mist
 import wisp
 import wisp_app/router
+import wisp_app/web
 
 pub fn main() {
   // This sets the logger to print INFO level logs, and other sensible defaults
@@ -28,6 +29,8 @@ pub fn main() {
         pool_size: 15,
       ),
     )
+
+  let context = web.Context(db: db)
 
   // An SQL statement to run. It takes one int as a parameter
   let sql =

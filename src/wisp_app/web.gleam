@@ -1,3 +1,4 @@
+import gleam/pgo
 import wisp
 
 /// The middleware stack that the request handler uses. The stack is itself a
@@ -10,6 +11,11 @@ import wisp
 /// The middleware used here are the ones that are suitable for use in your
 /// typical web application.
 /// 
+/// 
+pub type Context {
+  Context(db: pgo.Connection)
+}
+
 pub fn middleware(
   req: wisp.Request,
   handle_request: fn(wisp.Request) -> wisp.Response,
